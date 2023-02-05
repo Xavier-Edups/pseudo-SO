@@ -12,6 +12,16 @@ struct RAM {
 
 impl RAM {
 
+    fn get_mem_index(&self, pid: i32, process_priority: i32) -> (bool, usize){
+        let memory_blocks = get_mem(process_priority);
+        for i in 0..memory_blocks.len() {
+            if memory_blocks[i].pid == pid{
+                return (true, i);
+            }
+        }
+        return (false, 0);
+    }
+
     fn mem_available(&self, process_priority: i32, process_b_size: i32) -> (bool, usize) {
         let memory_blocks;
         if process_priority > 0 {
@@ -56,14 +66,23 @@ impl RAM {
         }
     }
 
-    fn dealloc_mem(&self, index: usize, process_priority: i32) -> (){
+    fn get_mem(&self, process_priority: i32) {
         let memory_blocks;
         if process_priority > 0 {
             memory_blocks = self.user_mem;
         } else {
             memory_blocks = self.realtime_mem;
         }
+        return memory_blocks;
+    }
 
+    fn dealloc_mem(&self, pid: i32, process_priority: i32) -> (){
+
+        let found, index = get_mem_index(pid, process_priority);
+        if !found {
+            return
+        }
+        let memory_blocks = get_mem(process_priority);
         // unico bloco
         if memory_blocks.len() == 1 {
             memory_blocks[index].status = 'L';
@@ -97,12 +116,7 @@ impl RAM {
     }
 
     fn merge_free_block(&self, stay_block: usize, remove_block: usize, process_priority: i32) -> (){
-        let memory_blocks;
-        if process_priority > 0 {
-            memory_blocks = self.user_mem;
-        } else {
-            memory_blocks = self.realtime_mem;
-        }
+        let memory_blocks = self.get_mem(process_priority);
 
         memory_blocks[stay_block].status = 'L';
         memory_blocks[stay_block].extension += memory_blocks[remove_block].extension;
@@ -111,12 +125,7 @@ impl RAM {
     }
 
     fn merge_two_free_blocks(&self, stay_block: usize, first_remove_block: usize, second_remove_block: usize, process_priority: i32) -> (){
-        let memory_blocks;
-        if process_priority > 0 {
-            memory_blocks = self.user_mem;
-        } else {
-            memory_blocks = self.realtime_mem;
-        }
+        let memory_blocks = self.get_mem(process_priority);
 
         memory_blocks[stay_block].extension += memory_blocks[first_remove_block].extension;
         memory_blocks[stay_block].extension += memory_blocks[second_remove_block].extension;
