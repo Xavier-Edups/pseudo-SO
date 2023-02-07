@@ -1,14 +1,14 @@
 #[derive(Debug)]
-struct RAMBlock {
+pub struct RAMBlock {
     status: char,
     pid: i32,
     mem_index: i32,
-    extension: i32,
+    extension: i32
 }
 
 pub struct RAM{
     realtime_mem: Vec<RAMBlock>,
-    user_mem: Vec<RAMBlock>,
+    user_mem: Vec<RAMBlock>
 }
 
 impl RAM {

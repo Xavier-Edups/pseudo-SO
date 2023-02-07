@@ -57,7 +57,7 @@ impl ResourceManager {
         }
     }
 
-    fn dealloc_resourcer(&mut self, process: Processo) -> () {
+    fn dealloc_resources(&mut self, process: Processo) -> () {
         if process.scanner {
             self.scanner = true;
         }

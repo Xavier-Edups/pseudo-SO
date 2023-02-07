@@ -1,50 +1,68 @@
+use std::sync::Mutex;
+use std::thread;
+
 pub struct Dispatcher {
     pcb: Vec<Vec<Processo>>,
     running_process: Vec<usize>,
-    ram: RAM,
-    resources: ResourceManager
+    ram: Mutex<RAM>,
+    resources: Mutex<ResourceManager>,
+    filesystem: Mutex<FileSystem>
 }
+
+// & pra emprestar
+// mut pra mudar
 
 impl Dispatcher {
 
-    fn run(&self) -> (){
-        
-        while pcb[0].len() > 0 || pcb[1].len() > 0 || pcb[2].len() > 0 || pcb[3].len() > 0  {
-            if pcb[0].len() > 0 {
-                for i in 0..pcb[0].len(){
-                    let process = pcb[0][i];
+    fn run(&mut self) -> (){
+        let mut v = Vec::<std::thread::JoinHandle<()>>::new();
+
+        while self.pcb[0].len() > 0 || self.pcb[1].len() > 0 || self.pcb[2].len() > 0 || self.pcb[3].len() > 0  {
+            for i in 0..4 {
+                for j in 0..self.pcb[i].len(){
+                    let mut process = self.pcb[i][j];
+                    // process already running;
                     if process.state == 1 {
                         continue
                     } else {
-                        let mem_available, mem_index = self.ram.mem_available(process.priority, process.blocks);
+                        // dispatch process 
+                        let (mem_available, mem_index) = self.ram.mem_available(&process.priority, &process.blocks);
+                        let resources_available = self.resources.resources_available(&process);
+                        if mem_available && resources_available {
 
-                        if available {
-                            println!("criando processo {} realtime", process.pid);
-                            self.ram.alloc_mem(process.priority, process.pid, process.blocks, mem_index);
+                            println!("DISPATCHER => Criando processo {};", &process.pid);
+                            self.ram.alloc_mem(&process.priority, &process.pid, &process.blocks, mem_index);
+                            self.resources.alloc_resources(&process);
 
+                            let handle = thread::spawn(|| {
+                                // process.execute(&self.filesystem);
+
+                                let mut tmp_ram = self.ram.lock().unwrap();
+                                let mut tmp_resources = self.resources.lock().unwrap();
+                                tmp_ram.dealloc_mem(&process.pid, &process.priority);
+                                tmp_resources.resources.dealloc_resources(&process);
+
+                                // process ended
+                                if process.state == 2 {
+                                    self.pcb[0].remove(i);
+                                }
+                            });
+                            v.push(handle);
                         } else {
-                            break;
+                            if process.priority == 0{
+                                break;
+                            } else {
+                                // verificar possibilidade de preempção
+                            }
                         }
                     }
                 }
             }
         }
-
-            // get processo da fila global
-            
-            // real time
-                // checa recursos
-                    // se ok 
-                        // printa aloca e executa
-                    // se não continua
-
-            // user
-                // checa recursos
-                    // se ok
-                        // printa aloca e executa
-                    // se não
-                        // checa se possivel preempção para execução
-                            // se sim faz
+        
+        for handle in v.into_iter() {
+            handle.join().unwrap();
+        }
     }
 
 }
