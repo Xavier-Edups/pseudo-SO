@@ -32,9 +32,9 @@ impl Dispatcher {
     }
 
     fn release_blocked_process(&self, lock: &Arc<T>) -> () {
-        let (lock, cvar) = lock;
-        let mut process_continue = lock.lock().unwrap();
-        *process_continue = true;
+        let (lock, cvar) = &*lock;
+        let mut preempted = lock.lock().unwrap();
+        *preempted = false;
         cvar.notify_one();
     }
 
@@ -49,16 +49,18 @@ impl Dispatcher {
             if available{
                 // verifica se thread já existe
                 if mutex_process_data.state == 1 {
-                    self.release_blocked_process(&*cond_variables[queue_index][process_index]);
+                    self.release_blocked_process(&cond_variables[queue_index][process_index]);
                 } else {
                     println!("DISPATCHER => Criando processo {};", &mutex_process_data.pid);
 
                     self.mem_and_resource_allocation(&mutex_process_data, where_available);
                     std::mem::drop(mutex_process_data);
 
+                    let thread_pair = Arc::clone(&cond_variables[queue_index][process_index]);
+
                     let handle = thread::spawn(|| {
                         let mut thread_process = process.lock().unwrap();
-                        thread_process.execute(&self.filesystem, &cond_variables);
+                        thread_process.execute(&self.filesystem, &thread_pair);
                     });
                     thread_handles.push(handle);
                 }

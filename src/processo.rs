@@ -29,10 +29,25 @@ impl Processo {
         self.instructions.last().unwrap()
     }
 
-    // fn execute(&self, fs: &FileSystem) -> () {
-    //     // enquanto dentro do quantum, tiver instruções, nao for preemptado (estado de execução)
-    //     while instructions.len() > 0  && self.state == 1 {
-    //         
-    //     }
-    // }
+    fn execute(&self, fs: &FileSystem, pair: &Arc<T>) -> () {
+        self.state = 1;
+        while true {
+            let (lock, cvar) = &*pair;
+            let mut preempted = lock.lock().unwrap();
+            if p_counter >= self.time {
+                *preempted = true;   
+            }
+            while *preempted {
+                preempted = cvar.wait(preempted).unwrap();
+            }
+            std::mem::drop(mutex_process_data);
+            
+            if self.instructions.len() == 0 {
+                return;
+            } else {
+                // pega instrução
+                // executar instrução
+            }
+        }
+    }
 }
