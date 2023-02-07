@@ -31,8 +31,8 @@ impl Dispatcher {
         resources_lock.alloc_resources(&mutex_process_data);
     }
 
-    fn process_scaling(&mut self, thread_handles: &mut Vec<JoinHandle>) -> () {
-        let mut process = self.pcb[i][j];
+    fn process_scaling(&mut self, queue_index: usize, process_index: usize, thread_handles: &mut Vec<JoinHandle>) -> () {
+        let mut process = self.pcb[queue_index][process_index];
         let mut lock = process.try_lock();
 
         if let Ok(mut mutex_process_data) = lock {
@@ -43,12 +43,11 @@ impl Dispatcher {
 
                 self.mem_and_resource_allocation(&mutex_process_data);
 
+                std::mem::drop(mutex_process_data);
+
                 let handle = thread::spawn(|| {
-                    // process.execute(&self.filesystem);
-                    // let mut tmp_ram = self.ram.lock().unwrap();
-                    // let mut tmp_resources = self.resources.lock().unwrap();
-                    // tmp_ram.dealloc_mem(&mutex_process_data.pid, &mutex_process_data.priority);
-                    // tmp_resources.resources.dealloc_resources(&mutex_process_data);
+                    let mut thread_process = process.lock().unwrap();
+                    thread_process.execute(&self.filesystem);
                 });
                 thread_handles.push(handle);
             } else {
@@ -59,7 +58,6 @@ impl Dispatcher {
                 }
             }
         } else {
-            // thread in possesion of lock;
             return
         }
     }
@@ -70,7 +68,7 @@ impl Dispatcher {
         while self.pcb[0].len() > 0 || self.pcb[1].len() > 0 || self.pcb[2].len() > 0 || self.pcb[3].len() > 0  {
             for i in 0..4 {
                 for j in 0..self.pcb[i].len(){
-                    self.process_scaling(&v);
+                    self.process_scaling(&i,&j,&v);
                 }
             }
         }
