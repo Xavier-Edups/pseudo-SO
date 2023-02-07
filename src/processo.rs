@@ -28,4 +28,11 @@ impl Processo {
     fn get_instruction(&self) -> &String {
         self.instructions.last().unwrap()
     }
+
+    // fn execute(&self, fs: &FileSystem) -> () {
+    //     // enquanto dentro do quantum, tiver instruções, nao for preemptado (estado de execução)
+    //     while instructions.len() > 0  && self.state == 1 {
+    //         
+    //     }
+    // }
 }
