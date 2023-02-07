@@ -3,7 +3,7 @@ pub struct Processo {
     pub pid: u16,
     pub offset: u32,
     pub init_time: u32,
-    pub priority: u8,
+    pub priority: usize,
     pub time: u32,
     pub blocks: u32,
     pub printer: u8,

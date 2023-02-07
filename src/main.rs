@@ -49,16 +49,20 @@ fn create_processes(file_str: &String) {
     dbg!(&process_info);
 
     // Cria vetor de processos e popula ele
-    let mut processos: Vec<Processo> = Vec::new();
+    let mut processos: Vec<Vec<Processo>> = Vec::new();
+    for _ in 0..4{
+        processos.push(vec![])
+    }
+
     let mut i = 0;
     while i < process_info.len() {
         let values: Vec<&str> = process_info[i].split(", ").collect();
         //dbg!(&values);
         let p = Processo {
             pid: i as u16,
-            offset: if i != 0 { processos[i-1].blocks + 1 } else { 0 },
+            offset: 0,
             init_time: values[0].parse::<u32>().unwrap(),
-            priority: values[1].parse::<u8>().unwrap(),
+            priority: values[1].parse::<usize>().unwrap(),
             time: values[2].parse::<u32>().unwrap(),
             blocks: values[3].parse::<u32>().unwrap(),
             printer: values[4].parse::<u8>().unwrap(),
@@ -68,7 +72,7 @@ fn create_processes(file_str: &String) {
             instructions: Vec::new()
         };
 
-        processos.push(p); // Coloca processo criado na lista de processos
+        processos[p.priority].push(p); // Coloca processo criado na lista de processos
 
         i += 1;
     }
