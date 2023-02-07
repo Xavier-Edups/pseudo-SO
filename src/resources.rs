@@ -1,11 +1,11 @@
+use Processo;
 
-
-struct ResourceManager {
+pub struct ResourceManager {
     // true == free
     scanner: bool,
-    printer:[bool, 2],
+    printer:[bool; 2],
     modem:bool,
-    drive:[bool, 2],
+    drive:[bool; 2],
 }
 
 impl ResourceManager {
@@ -42,7 +42,7 @@ impl ResourceManager {
         return scanner && printer && modem && drive; 
     }
 
-    fn alloc_resources(&self, process: Processo) -> () {
+    fn alloc_resources(&mut self, process: Processo) -> () {
         if process.scanner {
             self.scanner = false;
         }
@@ -57,7 +57,7 @@ impl ResourceManager {
         }
     }
 
-    fn dealloc_resourcer(&self, process: Processo) -> () {
+    fn dealloc_resourcer(&mut self, process: Processo) -> () {
         if process.scanner {
             self.scanner = true;
         }

@@ -2,11 +2,11 @@ struct File {
     status: char,
     file_name: String,
     file_owner: i32,
-    index: usize,
+    index: i32,
     extension: i32
 }
 
-struct FileSystem {
+pub struct FileSystem {
     fs: Vec<File>
 }
 
@@ -30,29 +30,28 @@ impl FileSystem {
         return (false, 0);
     }
 
-    fn create_file(&self, pid: i32, filename: String, filesize: i32, vec_index: usize) -> () {
-        let free_block = self.fs[vec_index];
+    fn create_file(&mut self, pid: i32, filename: String, filesize: i32, vec_index: usize) -> () {
         let file = File{
             status: 'F',
-            file_name: file_name,
+            file_name: filename,
             file_owner: pid,
-            index: free_block.index,
+            index: self.fs[vec_index].index,
             extension: filesize
         };
 
-        if free_block.extension == file.extension {
-            self.fs[vec.index] = file;
+        if self.fs[vec_index].extension == file.extension {
+            self.fs[vec_index] = file;
         } else {
             // Assumindo que muda o objeto do vetor
-            free_block.index += filesize;
-            free_block.extension -= filesize;
+            self.fs[vec_index].index += filesize;
+            self.fs[vec_index].extension -= filesize;
 
             self.fs.insert(vec_index,file);
         }
     }
 
-    fn delete_file(&self, pid: i32, process_priority:i32, filename: String) -> () {
-        let found, vec_index = self.get_file_index(filename);
+    fn delete_file(&mut self, pid: i32, process_priority:i32, filename: String) -> () {
+        let (found, vec_index) = self.get_file_index(filename);
 
         if !found {
             return
@@ -70,7 +69,7 @@ impl FileSystem {
         } else {
             // primeiro bloco com n blocos
             if vec_index == 0 {
-                if self.fs[index+1].status == 'L' {
+                if self.fs[vec_index+1].status == 'L' {
                     self.merge_free_block(vec_index, vec_index+1);
                 }
             // ultimo bloco com n blocos
@@ -95,14 +94,14 @@ impl FileSystem {
         }   
     }
 
-    fn merge_free_block(&self, stay_block: usize, remove_block: usize) -> (){
+    fn merge_free_block(&mut self, stay_block: usize, remove_block: usize) -> (){
         self.fs[stay_block].status = 'L';
         self.fs[stay_block].extension += self.fs[remove_block].extension;
         self.fs.remove(remove_block);
         return;
     }
 
-    fn merge_two_free_blocks(&self, stay_block: usize, first_remove_block: usize, second_remove_block: usize) -> (){
+    fn merge_two_free_blocks(&mut self, stay_block: usize, first_remove_block: usize, second_remove_block: usize) -> (){
         self.fs[stay_block].extension += self.fs[first_remove_block].extension;
         self.fs[stay_block].extension += self.fs[second_remove_block].extension;
         self.fs.remove(first_remove_block);
