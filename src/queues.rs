@@ -22,15 +22,17 @@ impl Dispatcher {
                 for j in 0..self.pcb[i].len(){
                     let mut process = self.pcb[i][j];
                     // process already running;
-                    if process.state == 1 {
+                    if process.state == 2 {
                         continue
                     } else {
                         // dispatch process 
                         let (mem_available, mem_index) = self.ram.mem_available(&process.priority, &process.blocks);
                         let resources_available = self.resources.resources_available(&process);
                         if mem_available && resources_available {
-
-                            println!("DISPATCHER => Criando processo {};", &process.pid);
+                            
+                            if process.state == 0 {
+                                println!("DISPATCHER => Criando processo {};", &process.pid);
+                            } 
                             self.ram.alloc_mem(&process.priority, &process.pid, &process.blocks, mem_index);
                             self.resources.alloc_resources(&process);
 
@@ -43,7 +45,7 @@ impl Dispatcher {
                                 tmp_resources.resources.dealloc_resources(&process);
 
                                 // process ended
-                                if process.state == 2 {
+                                if process.state == 3 {
                                     self.pcb[0].remove(i);
                                 }
                             });

@@ -14,6 +14,12 @@ pub struct Processo {
     pub state: u8
 }
 
+// state
+// 0 -> criado, só pode ir para 1
+// 1 -> pronto, só pode ir para 2
+// 2 -> executando, pode ir para 1 ou 3
+// 3 -> finalizado, não pode assumir nenhum outro valor
+
 impl Processo {
     fn pop_instruction(&mut self) {
         self.instructions.pop();
