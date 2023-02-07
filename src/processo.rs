@@ -6,11 +6,12 @@ pub struct Processo {
     pub priority: usize,
     pub time: u32,
     pub blocks: u32,
-    pub printer: u8,
+    pub printer: usize,
     pub scanner: bool,
     pub modem: bool,
-    pub drive: u8,
-    pub instructions: Vec<String>
+    pub drive: usize,
+    pub instructions: Vec<String>,
+    pub state: u8
 }
 
 impl Processo {

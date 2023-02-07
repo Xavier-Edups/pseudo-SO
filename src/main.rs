@@ -3,8 +3,14 @@ use std::fs;
 use std::path::Path;
 use std::ffi::OsStr;
 use crate::processo::Processo;
+use crate::mem_ram::RAM;
+use crate::filesystem::FileSystem;
+use crate::resources::ResourceManager;
 
 mod processo;
+mod mem_ram;
+mod filesystem;
+mod resources;
 
 // Dispatcher
 fn main() {
@@ -65,11 +71,12 @@ fn create_processes(file_str: &String) {
             priority: values[1].parse::<usize>().unwrap(),
             time: values[2].parse::<u32>().unwrap(),
             blocks: values[3].parse::<u32>().unwrap(),
-            printer: values[4].parse::<u8>().unwrap(),
+            printer: values[4].parse::<usize>().unwrap(),
             scanner: values[5].parse::<u8>().unwrap() != 0,
             modem: values[6].parse::<u8>().unwrap() != 0,
-            drive: values[7].parse::<u8>().unwrap(),
-            instructions: Vec::new()
+            drive: values[7].parse::<usize>().unwrap(),
+            instructions: Vec::new(),
+            state: 0
         };
 
         processos[p.priority].push(p); // Coloca processo criado na lista de processos
