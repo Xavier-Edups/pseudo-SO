@@ -1,4 +1,4 @@
-use Processo;
+use crate::processo::Processo;
 
 pub struct ResourceManager {
     // true == free

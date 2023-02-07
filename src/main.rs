@@ -17,8 +17,9 @@ fn main() {
     let files: Vec<String> = env::args().collect(); // Le os argumentos da linha de comando
     dbg!(&files);
     check_files(&files);
-    create_processes(&files[1]);
-    load_instructions(&files[2]);
+    let mut processos = create_processes(&files[1]);
+    load_instructions(&files[2], &mut processos);
+    dbg!(&processos);
     //loop {}
 }
 
@@ -46,11 +47,15 @@ fn check_files(files: &Vec<String>) { // Checa validade dos arquivos
     };
 }
 
-fn create_processes(file_str: &String) {
+fn create_processes(file_str: &String) -> Vec<Vec<Processo>> {
     // Le arquivo e guarda informação dos processos
     let f1 = Path::new(file_str);
     let mut raw_data = fs::read_to_string(f1).unwrap();
-    raw_data.pop();
+    match raw_data.chars().last() {
+        None => panic!("Erro na leitura do arquivo"),
+        Some('\n') => raw_data.pop(),
+        Some(c) => Some(c),
+    };
     let process_info: Vec<&str> = raw_data.split('\n').collect();
     dbg!(&process_info);
 
@@ -63,7 +68,7 @@ fn create_processes(file_str: &String) {
     let mut i = 0;
     while i < process_info.len() {
         let values: Vec<&str> = process_info[i].split(", ").collect();
-        //dbg!(&values);
+        dbg!(&values);
         let p = Processo {
             pid: i as u16,
             offset: 0,
@@ -83,9 +88,43 @@ fn create_processes(file_str: &String) {
 
         i += 1;
     }
-    dbg!(&processos);
+
+    processos
 }
 
-fn load_instructions(file_str: &String) {}
+fn load_instructions(file_str: &String, processos: &mut Vec<Vec<Processo>>) {
+    // Le segundo arquivo e guarda informações
+    let f2 = Path::new(file_str);
+    let mut raw_data = fs::read_to_string(f2).unwrap();
+    match raw_data.chars().last() {
+        None => panic!("Erro na leitura do arquivo"),
+        Some('\n') => raw_data.pop(),
+        Some(c) => Some(c),
+    };
+    let mut init_info: Vec<&str> = raw_data.split('\n').collect();
+    dbg!(&init_info);
 
-fn populate_memmory() {}
+    // Define configurações iniciais do sistema
+    let disk_size = init_info.remove(0).parse::<usize>().unwrap();
+    let file_count = init_info.remove(0).parse::<usize>().unwrap();
+    let mut i = 0;
+    while i < file_count {
+        init_info.remove(0);
+        populate_disk();
+        i += 1;
+    }
+
+    // Carrega instruções nos processos
+    for instrucao in init_info {
+        let inst_id = instrucao.split(", ").collect::<Vec<&str>>()[0];
+        for fila in &mut *processos {
+            for p in fila {
+                if p.pid == inst_id.parse::<u16>().unwrap() {
+                    p.instructions.push(instrucao.to_string());
+                }
+            }
+        }
+    }
+}
+
+fn populate_disk() {}

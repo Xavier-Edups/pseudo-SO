@@ -1,1 +1,1 @@
-/home/edups/unb/fso/pseudo-SO/target/debug/pseudo_so: /home/edups/unb/fso/pseudo-SO/src/main.rs /home/edups/unb/fso/pseudo-SO/src/processo.rs
+/home/eduardo.dantas/git/pseudo-SO/target/debug/pseudo_so: /home/eduardo.dantas/git/pseudo-SO/src/filesystem.rs /home/eduardo.dantas/git/pseudo-SO/src/main.rs /home/eduardo.dantas/git/pseudo-SO/src/mem_ram.rs /home/eduardo.dantas/git/pseudo-SO/src/processo.rs /home/eduardo.dantas/git/pseudo-SO/src/resources.rs
