@@ -55,13 +55,25 @@ impl Dispatcher {
                     println!("DISPATCHER => Criando processo {};", &mutex_process_data.pid);
 
                     self.mem_and_resource_allocation(&mutex_process_data, where_available);
+                    
+                    // Porque não da pra transferir ownership do lock pra thread;
                     std::mem::drop(mutex_process_data);
 
                     let thread_pair = Arc::clone(&cond_variables[queue_index][process_index]);
 
                     let handle = thread::spawn(|| {
-                        let mut thread_process = process.lock().unwrap();
-                        thread_process.execute(&self.filesystem, &thread_pair);
+                        let mut clone_process = &process
+                        let mut return_type = 0;
+                        while return_type > 0{
+                            let mut thread_process = clone_process.lock().unwrap();
+                            return_type = thread_process.execute(&self.filesystem, &thread_pair);
+                            std::mem::drop(thread_process);
+                            if return_type > 0 {
+                                let (lock, cvar) = &*thread_pair;
+                                let mut preempted = lock.lock().unwrap();
+                                preempted = cvar.wait(preempted).unwrap();
+                            }
+                        }
                     });
                     thread_handles.push(handle);
                 }

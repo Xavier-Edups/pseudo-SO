@@ -31,9 +31,30 @@ impl Processo {
     }
 
     fn get_instruction(&self) -> &String {
-        self.instructions.last().unwrap()
+        self.instructions[0]
     }
 
+    fn remove_instruction(&mut self) -> () {
+        self.instructions.remove(0);
+    }
+
+    fn do_instruction(&self, fs: &Mutex<FileSystem>, instruction: &String) -> (){
+        let t: String = instruction.chars().filter(|c| !c.is_whitespace()).collect();
+        let res: Vec<String> = t.split(",").map(|s| s.to_string()).collect();
+        let mut filesystem_lock = fs.lock().unwrap();
+        if res[1] == 0{
+            let available, vec_index = filesystem_lock.storage_available(res[3]);
+            if available {
+                filesystem_lock.create_file(self.pid, res[2], res[3], vec_index);
+                // desenhar bloco
+            } else {
+                return
+            }
+        } else {
+            filesystem_lock.delete_file(self.pid, self.priority, res[2]);
+            // apagar bloco
+        }
+    }
 
     fn execute(&mut self, fs: &FileSystem, pair: &Arc<(Mutex<bool>, Condvar)>) {
         self.state = State::Ready;
@@ -44,16 +65,18 @@ impl Processo {
             if p_counter >= self.time {
                 *preempted = true;   
             }
-            while *preempted {
-                preempted = cvar.wait(preempted).unwrap();
+            if *preempted {
+                return 1;
             }
-            std::mem::drop(lock);
+            std::mem::drop(preempted);
             
             if self.instructions.len() == 0 {
-                return;
+                return -1;
             } else {
-                // pega instrução
-                // executar instrução
+                println!("{} Execuntando instrução {}",self.pid, p_counter);
+                let instruction = self.get_instruction();
+                self.do_instruction(fs, instruction);
+                self.remove_instruction();
             }
 
             p_counter += 1;
