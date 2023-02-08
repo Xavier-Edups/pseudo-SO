@@ -1,1 +1,1 @@
-/home/edups/unb/fso/pseudo-SO/target/debug/pseudo_so: /home/edups/unb/fso/pseudo-SO/src/filesystem.rs /home/edups/unb/fso/pseudo-SO/src/main.rs /home/edups/unb/fso/pseudo-SO/src/mem_ram.rs /home/edups/unb/fso/pseudo-SO/src/processo.rs /home/edups/unb/fso/pseudo-SO/src/resources.rs
+/home/thiago/pseudo-SO/target/debug/pseudo_so: /home/thiago/pseudo-SO/src/filesystem.rs /home/thiago/pseudo-SO/src/main.rs /home/thiago/pseudo-SO/src/mem_ram.rs /home/thiago/pseudo-SO/src/processo.rs /home/thiago/pseudo-SO/src/resources.rs

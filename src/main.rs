@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex, Condvar};
+use std::thread;
 use std::env;
 use std::fs;
 use std::path::Path;
@@ -9,11 +11,13 @@ use crate::filesystem::FileSystem;
 use crate::filesystem::File;
 use crate::filesystem::Block;
 use crate::resources::ResourceManager;
+use crate::queues::Dispatcher;
 
 mod processo;
 mod mem_ram;
 mod filesystem;
 mod resources;
+mod queues;
 
 // Recursos Globais
 static mut RAM: RAM = RAM {
@@ -30,6 +34,22 @@ fn main() {
     let mut processos = create_processes(&files[1]);
     load_instructions(&files[2], &mut processos);
     dbg!(&processos);
+
+
+    let mut resource_manager = ResourceManager{
+        scanner: true,
+        printer: [true, true],
+        modem: true,
+        drive: [true, true]
+    };
+    let mut dispatcher = Dispatcher{
+        pcb:Mutex::new(0_u32),
+        ram:Mutex::new(0_u32),
+        resources:Mutex::new(resource_manager),
+        filesystem:Mutex::new(0_u32)
+    };
+
+    dispatcher.run();
 }
 
 fn check_files(files: &Vec<String>) { // Checa validade dos arquivos

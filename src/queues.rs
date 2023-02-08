@@ -2,6 +2,11 @@ use std::sync::{Arc, Mutex, Condvar};
 use std::thread;
 use thread::JoinHandle;
 use crate::processo::State;
+use crate::Processo;
+use crate::RAM;
+use crate::ResourceManager;
+use crate::FileSystem;
+
 
 pub struct Dispatcher {
     pcb: Vec<Vec<Mutex<Processo>>>,
@@ -33,14 +38,14 @@ impl Dispatcher {
         resources_lock.alloc_resources(&mutex_process_data);
     }
 
-    fn release_blocked_process(&self, lock: &Arc<T>) -> () {
+    fn release_blocked_process(&self, lock: &Arc<(Mutex<bool>, Condvar)>) -> () {
         let (lock, cvar) = &*lock;
         let mut preempted = lock.lock().unwrap();
         *preempted = false;
         cvar.notify_one();
     }
 
-    fn process_scaling(&mut self, queue_index: usize, process_index: usize, thread_handles: &mut Vec<JoinHandle<T>>, cond_variables: &mut Vec<Vec<Arc<(Mutex<bool>, Condvar)>>>) -> () {
+    fn process_scaling(&mut self, queue_index: usize, process_index: usize, thread_handles: &mut Vec<JoinHandle<()>>, cond_variables: &mut Vec<Vec<Arc<(Mutex<bool>, Condvar)>>>) -> () {
         let mut process = self.pcb[queue_index][process_index];
         let mut lock = process.try_lock();
 
@@ -50,7 +55,7 @@ impl Dispatcher {
                 self.pcb[queue_index].remove(process_index);
                 return;
             }
-            let available, where_available = self.mem_and_resource_available(&mutex_process_data);
+            let (available, where_available) = self.mem_and_resource_available(&mutex_process_data);
             // verifica se pode executar
             if available{
                 // verifica se thread já existe
@@ -96,7 +101,7 @@ impl Dispatcher {
         }
     }
 
-    fn run(&mut self) -> (){
+    pub fn run(&mut self) -> (){
         // Concurrency structures
         let mut thread_handles = Vec::<std::thread::JoinHandle<()>>::new();
         let mut cond_variables = Vec::new();

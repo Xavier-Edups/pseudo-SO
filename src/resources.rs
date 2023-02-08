@@ -10,7 +10,7 @@ pub struct ResourceManager {
 
 impl ResourceManager {
 
-    fn resources_available(&self, process: Processo) -> bool {
+    pub fn resources_available(&self, process: Processo) -> bool {
         let scanner;
         let printer;
         let modem;
@@ -42,7 +42,7 @@ impl ResourceManager {
         return scanner && printer && modem && drive; 
     }
 
-    fn alloc_resources(&mut self, process: Processo) -> () {
+    pub fn alloc_resources(&mut self, process: Processo) -> () {
         if process.scanner {
             self.scanner = false;
         }
@@ -57,7 +57,7 @@ impl ResourceManager {
         }
     }
 
-    fn dealloc_resources(&mut self, process: Processo) -> () {
+    pub fn dealloc_resources(&mut self, process: Processo) -> () {
         if process.scanner {
             self.scanner = true;
         }

@@ -32,14 +32,14 @@ impl RAM {
     }
 
     pub fn get_mem_index(&mut self, pid: i32, process_priority: i32) -> (bool, usize){
-        if process_priority > 0 {
+        if process_priority as i32 > 0 {
             return self.get_user_mem_index(pid);
         } else {
             return self.get_rt_mem_index(pid);
         }
     }
 
-    fn rt_mem_available(&mut self, process_b_size: i32) -> (bool, usize) {
+    fn rt_mem_available(&mut self, process_b_size: &u32) -> (bool, usize) {
         for i in 0..self.realtime_mem.len() {
             if self.realtime_mem[i].status == 'L' && self.realtime_mem[i].extension >= process_b_size{
                 return (true, i);
@@ -48,17 +48,17 @@ impl RAM {
         return (false, 0);
     }
 
-    fn user_mem_available(&mut self, process_b_size: i32) -> (bool, usize) {
+    fn user_mem_available(&mut self, process_b_size: &u32) -> (bool, usize) {
         for i in 0..self.user_mem.len() {
-            if self.user_mem[i].status == 'L' && self.user_mem[i].extension >= process_b_size{
+            if self.user_mem[i].status == 'L' && self.user_mem[i].extension >= (*process_b_size).try_into().unwrap(){
                 return (true, i);
             }
         }
         return (false, 0);
     }
 
-    pub fn mem_available(&mut self, process_priority: i32, process_b_size: i32) -> (bool, usize) {
-        if process_priority > 0 {
+    pub fn mem_available(&mut self, process_priority: &usize, process_b_size: &u32) -> (bool, usize) {
+        if process_priority as i32 > 0 {
             return self.user_mem_available(process_b_size);
         } else {
             return self.rt_mem_available(process_b_size);
