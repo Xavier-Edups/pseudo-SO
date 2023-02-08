@@ -1,4 +1,5 @@
 #[derive(Debug)]
+
 pub struct Processo {
     pub pid: u16,
     pub offset: u32,
@@ -13,6 +14,9 @@ pub struct Processo {
     pub instructions: Vec<String>,
     pub state: u8
 }
+
+use crate::FileSystem;
+use std::sync::{Arc, Mutex, Condvar};
 
 // state
 // 0 -> criado, só pode ir para 1
@@ -29,10 +33,12 @@ impl Processo {
         self.instructions.last().unwrap()
     }
 
-    fn execute(&self, fs: &FileSystem, pair: &Arc<T>) -> () {
+
+    fn execute(&mut self, fs: &FileSystem, pair: &Arc<(Mutex<bool>, Condvar)>) {
         self.state = 1;
-        while true {
-            let (lock, cvar) = &*pair;
+        let mut p_counter = 0;
+        loop {
+            let (lock, cvar) = &**pair;
             let mut preempted = lock.lock().unwrap();
             if p_counter >= self.time {
                 *preempted = true;   
@@ -40,7 +46,7 @@ impl Processo {
             while *preempted {
                 preempted = cvar.wait(preempted).unwrap();
             }
-            std::mem::drop(mutex_process_data);
+            std::mem::drop(lock);
             
             if self.instructions.len() == 0 {
                 return;
@@ -48,6 +54,9 @@ impl Processo {
                 // pega instrução
                 // executar instrução
             }
+
+            p_counter += 1;
         }
     }
+
 }

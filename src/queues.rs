@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex, Condvar};
 use std::thread;
 use thread::JoinHandle;
+
 pub struct Dispatcher {
     pcb: Vec<Vec<Mutex<Processo>>>,
     running_process: Vec<usize>,

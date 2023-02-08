@@ -5,12 +5,21 @@ use std::ffi::OsStr;
 use crate::processo::Processo;
 use crate::mem_ram::RAM;
 use crate::filesystem::FileSystem;
+use crate::filesystem::File;
+use crate::filesystem::Block;
 use crate::resources::ResourceManager;
 
 mod processo;
 mod mem_ram;
 mod filesystem;
 mod resources;
+
+// Recursos Globais
+static mut RAM: RAM = RAM {
+    realtime_mem: Vec::new(),
+    user_mem: Vec::new()
+};
+static mut DISK: FileSystem = FileSystem { fs: Vec::new(), blocks: Vec::new() };
 
 // Dispatcher
 fn main() {
@@ -106,6 +115,8 @@ fn load_instructions(file_str: &String, processos: &mut Vec<Vec<Processo>>) {
 
     // Define configurações iniciais do sistema
     let disk_size = init_info.remove(0).parse::<usize>().unwrap();
+    create_disk(disk_size);
+    unsafe { dbg!(&DISK); }
     let file_count = init_info.remove(0).parse::<usize>().unwrap();
     let mut i = 0;
     while i < file_count {
@@ -127,4 +138,21 @@ fn load_instructions(file_str: &String, processos: &mut Vec<Vec<Processo>>) {
     }
 }
 
-fn populate_disk() {}
+fn create_disk(disk_size: usize) {
+    unsafe {
+        DISK.fs.push(File {
+            free: true,
+            file_name: "".to_string(),
+            file_owner: -1,
+            index: 0,
+            size: disk_size as i32
+        });
+    }
+    for _i in 0..disk_size {
+        unsafe { DISK.blocks.push(Block::Free) }
+    }
+}
+
+fn populate_disk() {
+
+}

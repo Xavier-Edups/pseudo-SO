@@ -6,9 +6,9 @@ pub struct RAMBlock {
     extension: i32
 }
 
-pub struct RAM{
-    realtime_mem: Vec<RAMBlock>,
-    user_mem: Vec<RAMBlock>
+pub struct RAM {
+    pub realtime_mem: Vec<RAMBlock>,
+    pub user_mem: Vec<RAMBlock>
 }
 
 impl RAM {
