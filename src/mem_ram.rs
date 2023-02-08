@@ -16,7 +16,7 @@ impl RAM {
     fn get_rt_mem_index(&mut self, pid: i32) -> (bool, usize){
         for i in 0..self.realtime_mem.len() {
             if self.realtime_mem[i].pid == pid{
-                return (true, i);
+                return (true, self.realtime_mem[i].mem_index as usize);
             }
         }
         return (false, 0);
@@ -25,13 +25,13 @@ impl RAM {
     fn get_user_mem_index(&mut self, pid: i32) -> (bool, usize){
         for i in 0..self.user_mem.len() {
             if self.user_mem[i].pid == pid{
-                return (true, i);
+                return (true, self.user_mem[i].mem_index as usize);
             }
         }
         return (false, 0);
     }
 
-    fn get_mem_index(&mut self, pid: i32, process_priority: i32) -> (bool, usize){
+    pub fn get_mem_index(&mut self, pid: i32, process_priority: i32) -> (bool, usize){
         if process_priority > 0 {
             return self.get_user_mem_index(pid);
         } else {
@@ -57,7 +57,7 @@ impl RAM {
         return (false, 0);
     }
 
-    fn mem_available(&mut self, process_priority: i32, process_b_size: i32) -> (bool, usize) {
+    pub fn mem_available(&mut self, process_priority: i32, process_b_size: i32) -> (bool, usize) {
         if process_priority > 0 {
             return self.user_mem_available(process_b_size);
         } else {
@@ -65,7 +65,7 @@ impl RAM {
         }
     }
 
-    fn alloc_mem(&mut self, process_priority: i32, pid: i32, process_b_size: i32, available_mem_pos: usize) -> i32{
+    pub fn alloc_mem(&mut self, process_priority: i32, pid: i32, process_b_size: i32, available_mem_pos: usize) -> (){
         if process_priority > 0 {
             return self.alloc_user_mem(pid, process_b_size, available_mem_pos);
         } else {
@@ -73,12 +73,18 @@ impl RAM {
         }
     }
 
-    fn alloc_rt_mem(&mut self, pid: i32, process_b_size: i32, available_mem_pos: usize) -> i32{
-
-        if self.realtime_mem[available_mem_pos].extension == process_b_size {
+    fn alloc_rt_mem(&mut self, pid: i32, process_b_size: i32, available_mem_pos: usize) -> (){
+        if self.realtime_mem.len() <= available_mem_pos {
+            let new_block = RAMBlock{
+                status: 'P',
+                pid: pid,
+                mem_index: 0,
+                extension: process_b_size,
+            };
+            self.realtime_mem.insert(available_mem_pos,new_block);
+        } else if self.realtime_mem[available_mem_pos].extension == process_b_size {
             self.realtime_mem[available_mem_pos].status = 'P';
             self.realtime_mem[available_mem_pos].pid = pid;
-            return self.realtime_mem[available_mem_pos].mem_index;
         } else {
             let new_block = RAMBlock{
                 status: 'P',
@@ -94,17 +100,21 @@ impl RAM {
             let resultado = new_block.mem_index.clone();
 
             self.realtime_mem.insert(available_mem_pos, new_block);
-            
-            return resultado;
         }
     }
 
-    fn alloc_user_mem(&mut self, pid: i32, process_b_size: i32, available_mem_pos: usize) -> i32{
-
-        if self.user_mem[available_mem_pos].extension == process_b_size {
+    fn alloc_user_mem(&mut self, pid: i32, process_b_size: i32, available_mem_pos: usize) -> (){
+        if self.user_mem.len() <= available_mem_pos {
+            let new_block = RAMBlock{
+                status: 'P',
+                pid: pid,
+                mem_index: 0,
+                extension: process_b_size,
+            };
+            self.user_mem.insert(available_mem_pos,new_block);
+        } else if self.user_mem[available_mem_pos].extension == process_b_size {
             self.user_mem[available_mem_pos].status = 'P';
             self.user_mem[available_mem_pos].pid = pid;
-            return self.user_mem[available_mem_pos].mem_index;
         } else {
             let new_block = RAMBlock{
                 status: 'P',
@@ -120,8 +130,6 @@ impl RAM {
             let resultado = new_block.mem_index.clone();
 
             self.user_mem.insert(available_mem_pos,new_block);
-
-            return resultado;
         }
     }
 

@@ -30,7 +30,6 @@ fn main() {
     let mut processos = create_processes(&files[1]);
     load_instructions(&files[2], &mut processos);
     dbg!(&processos);
-    //loop {}
 }
 
 fn check_files(files: &Vec<String>) { // Checa validade dos arquivos
@@ -78,23 +77,36 @@ fn create_processes(file_str: &String) -> Vec<Vec<Processo>> {
     let mut i = 0;
     while i < process_info.len() {
         let values: Vec<&str> = process_info[i].split(", ").collect();
-        dbg!(&values);
-        let p = Processo {
-            pid: i as u16,
-            offset: 0,
-            init_time: values[0].parse::<u32>().unwrap(),
-            priority: values[1].parse::<usize>().unwrap(),
-            time: values[2].parse::<u32>().unwrap(),
-            blocks: values[3].parse::<u32>().unwrap(),
-            printer: values[4].parse::<usize>().unwrap(),
-            scanner: values[5].parse::<u8>().unwrap() != 0,
-            modem: values[6].parse::<u8>().unwrap() != 0,
-            drive: values[7].parse::<usize>().unwrap(),
-            instructions: Vec::new(),
-            state: State::Ready
-        };
+        unsafe {
+            let priority = values[1].parse::<usize>().unwrap();
+            let offset = if i != 0 {
+                if !processos[priority].is_empty() {
+                    processos[priority][processos[priority].len()-1].blocks +
+                    processos[priority][processos[priority].len()-1].offset + 1
+                } else { 0 }
+            } else { 0 };
+            let p = Processo {
+                pid: i as u16,
+                offset: offset as u32,
+                init_time: values[0].parse::<u32>().unwrap(),
+                priority,
+                time: values[2].parse::<u32>().unwrap(),
+                blocks: values[3].parse::<u32>().unwrap(),
+                printer: values[4].parse::<usize>().unwrap(),
+                scanner: values[5].parse::<u8>().unwrap() != 0,
+                modem: values[6].parse::<u8>().unwrap() != 0,
+                drive: values[7].parse::<usize>().unwrap(),
+                instructions: Vec::new(),
+                state: State::Ready
+            };
+            if RAM.mem_available(p.priority as i32, p.blocks as i32).0 {
+               println!("Não foi possível criar o processo {}. Memória insuficiente.", p.pid);
+               continue;
+            }
+            RAM.alloc_mem(p.priority as i32, p.pid as i32, p.blocks as i32, processos[p.priority].len() as usize);
 
-        processos[p.priority].push(p); // Coloca processo criado na lista de processos
+            processos[p.priority].push(p); // Coloca processo criado na lista de processos
+        }
 
         i += 1;
     }

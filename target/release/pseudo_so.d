@@ -1,0 +1,1 @@
+/home/edups/unb/fso/pseudo-SO/target/release/pseudo_so: /home/edups/unb/fso/pseudo-SO/src/filesystem.rs /home/edups/unb/fso/pseudo-SO/src/main.rs /home/edups/unb/fso/pseudo-SO/src/mem_ram.rs /home/edups/unb/fso/pseudo-SO/src/processo.rs /home/edups/unb/fso/pseudo-SO/src/resources.rs
