@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Display)]
 pub enum Block {
     Free,
     Occupied
@@ -21,11 +21,18 @@ pub struct FileSystem {
 
 impl FileSystem {
 
-    fn print_block(&mut self, nome: String, quantidade: String, vec_index: usize) -> (){
+    fn print_filesystem(&self) -> () {
+        println!("Mapa de ocupação de disco: ");
+        for i in 0..self.blocks {
+            println!("{}", self.blocks[i]);
+        }
+    }
+
+    fn print_block(&mut self, quantidade: String, vec_index: usize) -> (){
         let blocks_index = self.fs[vec_index].index;
         let quantidade_int = quantidade.parse::<i32>().unwrap();
         for i in index..index+quantidade_int {
-            self.blocks[i] = nome;
+            self.blocks[i] = Block::Occupied;
         }
     }
 
@@ -39,7 +46,7 @@ impl FileSystem {
             }
         }
         for i in block_index..block_index+block_size{
-            self.blocks[i] = "_";
+            self.blocks[i] = Block::Free;
         }
     }
 
