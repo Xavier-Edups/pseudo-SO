@@ -1,5 +1,12 @@
 #[derive(Debug)]
+pub enum State {
+    Ready,
+    Running,
+    Waiting,
+    Terminated
+}
 
+#[derive(Debug)]
 pub struct Processo {
     pub pid: u16,
     pub offset: u32,
@@ -12,17 +19,11 @@ pub struct Processo {
     pub modem: bool,
     pub drive: usize,
     pub instructions: Vec<String>,
-    pub state: u8
+    pub state: State
 }
 
 use crate::FileSystem;
 use std::sync::{Arc, Mutex, Condvar};
-
-// state
-// 0 -> criado, só pode ir para 1
-// 1 -> pronto, só pode ir para 2
-// 2 -> executando, pode ir para 1 ou 3
-// 3 -> finalizado, não pode assumir nenhum outro valor
 
 impl Processo {
     fn pop_instruction(&mut self) {
@@ -35,7 +36,7 @@ impl Processo {
 
 
     fn execute(&mut self, fs: &FileSystem, pair: &Arc<(Mutex<bool>, Condvar)>) {
-        self.state = 1;
+        self.state = State::Ready;
         let mut p_counter = 0;
         loop {
             let (lock, cvar) = &**pair;

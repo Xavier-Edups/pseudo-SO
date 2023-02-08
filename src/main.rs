@@ -3,6 +3,7 @@ use std::fs;
 use std::path::Path;
 use std::ffi::OsStr;
 use crate::processo::Processo;
+use crate::processo::State;
 use crate::mem_ram::RAM;
 use crate::filesystem::FileSystem;
 use crate::filesystem::File;
@@ -90,7 +91,7 @@ fn create_processes(file_str: &String) -> Vec<Vec<Processo>> {
             modem: values[6].parse::<u8>().unwrap() != 0,
             drive: values[7].parse::<usize>().unwrap(),
             instructions: Vec::new(),
-            state: 0
+            state: State::Ready
         };
 
         processos[p.priority].push(p); // Coloca processo criado na lista de processos
@@ -116,14 +117,13 @@ fn load_instructions(file_str: &String, processos: &mut Vec<Vec<Processo>>) {
     // Define configurações iniciais do sistema
     let disk_size = init_info.remove(0).parse::<usize>().unwrap();
     create_disk(disk_size);
-    unsafe { dbg!(&DISK); }
     let file_count = init_info.remove(0).parse::<usize>().unwrap();
     let mut i = 0;
     while i < file_count {
-        init_info.remove(0);
-        populate_disk();
+        populate_disk(init_info.remove(0).to_string());
         i += 1;
     }
+    unsafe { dbg!(&DISK); }
 
     // Carrega instruções nos processos
     for instrucao in init_info {
@@ -142,7 +142,7 @@ fn create_disk(disk_size: usize) {
     unsafe {
         DISK.fs.push(File {
             free: true,
-            file_name: "".to_string(),
+            file_name: "Disk Free".to_string(),
             file_owner: -1,
             index: 0,
             size: disk_size as i32
@@ -153,6 +153,29 @@ fn create_disk(disk_size: usize) {
     }
 }
 
-fn populate_disk() {
+fn populate_disk(config: String) {
+    let args: Vec<&str> = config.split(", ").collect();
+    let file_name = args[0];
+    let index = args[1].parse::<usize>().unwrap();
+    let size = args[2].parse::<usize>().unwrap();
+    unsafe {
+        for i in index..index+size {
+            if DISK.blocks[i] == Block::Occupied {
+                println!("Não foi possível criar arquivo {file_name} no espaço de disco desejado.");
+                return;
+            }
+        }
 
+        for j in index..index+size {
+            DISK.blocks[j] = Block::Occupied;
+        }
+        DISK.fs[0].size -= size as i32;
+        DISK.fs.push(File {
+            free: false,
+            file_name: file_name.to_string(),
+            file_owner: -1,
+            index: index as i32,
+            size: size as i32
+        });
+    }
 }
