@@ -21,6 +21,28 @@ pub struct FileSystem {
 
 impl FileSystem {
 
+    fn print_block(&mut self, nome: String, quantidade: String, vec_index: usize) -> (){
+        let blocks_index = self.fs[vec_index].index;
+        let quantidade_int = quantidade.parse::<i32>().unwrap();
+        for i in index..index+quantidade_int {
+            self.blocks[i] = nome;
+        }
+    }
+
+    fn print_remove_block(&mut self, nome: String) -> {
+        let mut block_index;
+        let mut block_size
+        for i in 0..self.fs.len(){
+            if self.fs[i].file_name == nome {
+                block_index = self.fs[i].index;
+                block_size = self.fs[i].size;
+            }
+        }
+        for i in block_index..block_index+block_size{
+            self.blocks[i] = "_";
+        }
+    }
+
     fn get_file_index(&self, filename: String) -> (bool, usize) {
         for i in 0..self.fs.len() {
             if self.fs[i].file_name == filename {
@@ -59,22 +81,22 @@ impl FileSystem {
         }
     }
 
-    fn delete_file(&mut self, pid: i32, process_priority:i32, filename: String) -> () {
+    fn delete_file(&mut self, pid: i32, process_priority:i32, filename: String) -> bool {
         let (found, vec_index) = self.get_file_index(filename);
 
         if !found {
-            return
+            return false
         }
 
 
         if process_priority > 0 && self.fs[vec_index].file_owner != pid{
-            return
+            return false
         }
 
         // unico bloco
         if self.fs.len() == 1 {
             self.fs[vec_index].free = true;
-            return;
+            return true;
         } else {
             // primeiro bloco com n blocos
             if vec_index == 0 {
@@ -99,7 +121,7 @@ impl FileSystem {
                 }
             }
 
-            return;
+            return true;
         }   
     }
 

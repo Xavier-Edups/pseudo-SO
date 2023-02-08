@@ -42,17 +42,21 @@ impl Processo {
         let t: String = instruction.chars().filter(|c| !c.is_whitespace()).collect();
         let res: Vec<String> = t.split(",").map(|s| s.to_string()).collect();
         let mut filesystem_lock = fs.lock().unwrap();
+        
+        // tipo da operação
         if res[1] == 0{
             let available, vec_index = filesystem_lock.storage_available(res[3]);
             if available {
                 filesystem_lock.create_file(self.pid, res[2], res[3], vec_index);
-                // desenhar bloco
+                filesystem_lock.print_block(res[2], res[3], vec_index);
             } else {
                 return
             }
         } else {
-            filesystem_lock.delete_file(self.pid, self.priority, res[2]);
-            // apagar bloco
+            let deleted = filesystem_lock.delete_file(self.pid, self.priority, res[2]);
+            if deleted {
+                print_remove_block.print_remove_block(res[2]);
+            }
         }
     }
 
