@@ -90,10 +90,12 @@ impl RAM {
             // Assumindo que muda o objeto do vetor
             self.realtime_mem[available_mem_pos].mem_index += process_b_size;
             self.realtime_mem[available_mem_pos].extension -= process_b_size;
-
-            self.realtime_mem.insert(available_mem_pos,new_block);
             
-            return new_block.mem_index
+            let resultado = new_block.mem_index.clone();
+
+            self.realtime_mem.insert(available_mem_pos, new_block);
+            
+            return resultado;
         }
     }
 
@@ -115,9 +117,11 @@ impl RAM {
             self.user_mem[available_mem_pos].mem_index += process_b_size;
             self.user_mem[available_mem_pos].extension -= process_b_size;
 
+            let resultado = new_block.mem_index.clone();
+
             self.user_mem.insert(available_mem_pos,new_block);
 
-            return new_block.mem_index
+            return resultado;
         }
     }
 
@@ -234,7 +238,7 @@ impl RAM {
     }
 
     fn preemptavel(&mut self, pid: i32, new_p_size: i32) -> bool {
-        for i in self.user_mem.len(){
+        for i in 0..self.user_mem.len(){
             if self.user_mem[i].pid == pid{
                 let mut antes = 0;
                 let mut depois = 0;
@@ -247,7 +251,7 @@ impl RAM {
                         depois = self.user_mem[i+1].extension;
                     }
                 }
-                return antes+depois+self.user_mem[i].exetensio > new_p_size;
+                return antes+depois+self.user_mem[i].extension > new_p_size;
             } else {
                 continue;
             }

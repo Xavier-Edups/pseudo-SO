@@ -31,7 +31,7 @@ impl Processo {
     }
 
     fn get_instruction(&self) -> &String {
-        self.instructions[0]
+        &self.instructions[0]
     }
 
     fn remove_instruction(&mut self) -> () {
@@ -44,23 +44,24 @@ impl Processo {
         let mut filesystem_lock = fs.lock().unwrap();
         
         // tipo da operação
-        if res[1] == 0{
-            let available, vec_index = filesystem_lock.storage_available(res[3]);
+        if res[1] == "0"{
+            let (available, vec_index) = filesystem_lock.storage_available(res[3].parse::<i32>().unwrap());
             if available {
-                filesystem_lock.create_file(self.pid, res[2], res[3], vec_index);
-                filesystem_lock.print_block(res[2], res[3], vec_index);
+
+                filesystem_lock.create_file(&self.pid, &res[2], &res[3].parse::<i32>().unwrap(), &vec_index);
+                filesystem_lock.print_block(&res[3], &vec_index);
             } else {
                 return
             }
         } else {
-            let deleted = filesystem_lock.delete_file(self.pid, self.priority, res[2]);
+            let deleted = filesystem_lock.delete_file(&self.pid, &self.priority, &res[2]);
             if deleted {
-                print_remove_block.print_remove_block(res[2]);
+                filesystem_lock.print_remove_block(&res[2]);
             }
         }
     }
 
-    fn execute(&mut self, fs: &FileSystem, pair: &Arc<(Mutex<bool>, Condvar)>) {
+    fn execute(&mut self, fs: &Mutex<FileSystem>, pair: &Arc<(Mutex<bool>, Condvar)>) -> i32{
         self.state = State::Running;
         let mut p_counter = 0;
         loop {

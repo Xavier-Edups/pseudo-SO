@@ -143,7 +143,7 @@ fn create_disk(disk_size: usize) {
         DISK.fs.push(File {
             free: true,
             file_name: "Disk Free".to_string(),
-            file_owner: -1,
+            file_owner: 1001,
             index: 0,
             size: disk_size as i32
         });
@@ -173,7 +173,7 @@ fn populate_disk(config: String) {
         DISK.fs.push(File {
             free: false,
             file_name: file_name.to_string(),
-            file_owner: -1,
+            file_owner: 1001,
             index: index as i32,
             size: size as i32
         });
