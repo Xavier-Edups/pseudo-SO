@@ -61,7 +61,7 @@ impl Processo {
     }
 
     fn execute(&mut self, fs: &FileSystem, pair: &Arc<(Mutex<bool>, Condvar)>) {
-        self.state = State::Ready;
+        self.state = State::Running;
         let mut p_counter = 0;
         loop {
             let (lock, cvar) = &**pair;
@@ -70,6 +70,7 @@ impl Processo {
                 *preempted = true;   
             }
             if *preempted {
+                self.state = State::Waiting;
                 return 1;
             }
             std::mem::drop(preempted);

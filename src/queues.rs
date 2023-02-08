@@ -5,7 +5,6 @@ use crate::processo::State;
 
 pub struct Dispatcher {
     pcb: Vec<Vec<Mutex<Processo>>>,
-    running_process: Vec<usize>,
     ram: Mutex<RAM>,
     resources: Mutex<ResourceManager>,
     filesystem: Mutex<FileSystem>
@@ -41,7 +40,7 @@ impl Dispatcher {
         cvar.notify_one();
     }
 
-    fn process_scaling(&mut self, queue_index: usize, process_index: usize, thread_handles: &mut Vec<JoinHandle<T>>, cond_variables: &mut Vec<T>) -> () {
+    fn process_scaling(&mut self, queue_index: usize, process_index: usize, thread_handles: &mut Vec<JoinHandle<T>>, cond_variables: &mut Vec<Vec<Arc<(Mutex<bool>, Condvar)>>>) -> () {
         let mut process = self.pcb[queue_index][process_index];
         let mut lock = process.try_lock();
 
@@ -55,7 +54,7 @@ impl Dispatcher {
             // verifica se pode executar
             if available{
                 // verifica se thread já existe
-                if mutex_process_data.state == State::Ready {
+                if mutex_process_data.state == State::Waiting {
                     self.release_blocked_process(&cond_variables[queue_index][process_index]);
                 } else {
                     mutex_process_data.print_process_create();
@@ -68,14 +67,15 @@ impl Dispatcher {
                     let thread_pair = Arc::clone(&cond_variables[queue_index][process_index]);
 
                     let handle = thread::spawn(|| {
-                        let mut clone_process = &process
+                        let mut clone_thread_pair = &thread_pair;
+                        let mut clone_process = &process;
                         let mut return_type = 0;
                         while return_type > 0{
                             let mut thread_process = clone_process.lock().unwrap();
-                            return_type = thread_process.execute(&self.filesystem, &thread_pair);
+                            return_type = thread_process.execute(&self.filesystem, &clone_thread_pair);
                             std::mem::drop(thread_process);
                             if return_type > 0 {
-                                let (lock, cvar) = &*thread_pair;
+                                let (lock, cvar) = &*clone_thread_pair;
                                 let mut preempted = lock.lock().unwrap();
                                 preempted = cvar.wait(preempted).unwrap();
                             }
@@ -88,6 +88,7 @@ impl Dispatcher {
                     return;
                 } else {
                     // verificar possibilidade de preempção
+                    // verificar se tem processo de nivel menor em execução, que se retirado da pra botar o processo atual
                 }
             }
         } else {
