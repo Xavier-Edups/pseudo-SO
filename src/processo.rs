@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum State {
     Ready,
     Running,
@@ -75,6 +75,7 @@ impl Processo {
             std::mem::drop(preempted);
             
             if self.instructions.len() == 0 {
+                self.state = State::Terminated;
                 return -1;
             } else {
                 println!("{} Execuntando instrução {}",self.pid, p_counter);
@@ -87,4 +88,16 @@ impl Processo {
         }
     }
 
+    fn print_process_create(&self) -> () {
+        println!("DISPATCHER => ");
+        println!("PID: {}", self.pid);
+        println!("offset: {}", self.offset);
+        println!("blocks: {}", self.blocks);
+        println!("priority: {}", self.priority);
+        println!("time: {}", self.time);
+        println!("printers: {}", self.printer);
+        println!("scanners: {}", self.scanner);
+        println!("modems: {}", self.modem);
+        println!("drives: {}", self.drive);
+    }
 }

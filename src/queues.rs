@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex, Condvar};
 use std::thread;
 use thread::JoinHandle;
+use crate::processo::State;
 
 pub struct Dispatcher {
     pcb: Vec<Vec<Mutex<Processo>>>,
@@ -24,11 +25,12 @@ impl Dispatcher {
         return (mem_available && resources_available, mem_index)
     }
 
-    fn mem_and_resource_allocation(&self, mutex_process_data: &Processo, mem_index: usize){
+    fn mem_and_resource_allocation(&self, mutex_process_data: &mut Processo, mem_index: usize){
         let mut ram_lock = self.ram.lock().unwrap();
         let mut resources_lock = self.resources.lock().unwrap();
         
-        ram_lock.alloc_mem(&mutex_process_data.priority, &mutex_process_data.pid, &mutex_process_data.blocks, mem_index);
+        let offset = ram_lock.alloc_mem(&mutex_process_data.priority, &mutex_process_data.pid, &mutex_process_data.blocks, mem_index);
+        mutex_process_data.offset = offset;
         resources_lock.alloc_resources(&mutex_process_data);
     }
 
@@ -45,14 +47,18 @@ impl Dispatcher {
 
         // verifica se nao esta executando
         if let Ok(mut mutex_process_data) = lock {
+            if mutex_process_data.state == State::Terminated{
+                self.pcb[queue_index].remove(process_index);
+                return;
+            }
             let available, where_available = self.mem_and_resource_available(&mutex_process_data);
             // verifica se pode executar
             if available{
                 // verifica se thread já existe
-                if mutex_process_data.state == 1 {
+                if mutex_process_data.state == State::Ready {
                     self.release_blocked_process(&cond_variables[queue_index][process_index]);
                 } else {
-                    println!("DISPATCHER => Criando processo {};", &mutex_process_data.pid);
+                    mutex_process_data.print_process_create();
 
                     self.mem_and_resource_allocation(&mutex_process_data, where_available);
                     
@@ -102,7 +108,9 @@ impl Dispatcher {
 
         while self.pcb[0].len() > 0 || self.pcb[1].len() > 0 || self.pcb[2].len() > 0 || self.pcb[3].len() > 0  {
             for i in 0..4 {
-                for j in 0..self.pcb[i].len(){
+                // utilizado o while porque o vetor pode diminuir durante execução
+                let mut j = 0;
+                while j < self.pcb[i].len(){
                     self.process_scaling(&i, &j, &thread_handles, &cond_variables);
                 }
             }

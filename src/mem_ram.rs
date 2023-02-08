@@ -65,19 +65,20 @@ impl RAM {
         }
     }
 
-    fn alloc_mem(&mut self, process_priority: i32, pid: i32, process_b_size: i32, available_mem_pos: usize) -> (){
+    fn alloc_mem(&mut self, process_priority: i32, pid: i32, process_b_size: i32, available_mem_pos: usize) -> i32{
         if process_priority > 0 {
-            self.alloc_user_mem(pid, process_b_size, available_mem_pos);
+            return self.alloc_user_mem(pid, process_b_size, available_mem_pos);
         } else {
-            self.alloc_rt_mem(pid, process_b_size, available_mem_pos);
+            return self.alloc_rt_mem(pid, process_b_size, available_mem_pos);
         }
     }
 
-    fn alloc_rt_mem(&mut self, pid: i32, process_b_size: i32, available_mem_pos: usize) -> (){
+    fn alloc_rt_mem(&mut self, pid: i32, process_b_size: i32, available_mem_pos: usize) -> i32{
 
         if self.realtime_mem[available_mem_pos].extension == process_b_size {
             self.realtime_mem[available_mem_pos].status = 'P';
             self.realtime_mem[available_mem_pos].pid = pid;
+            return self.realtime_mem[available_mem_pos].mem_index;
         } else {
             let new_block = RAMBlock{
                 status: 'P',
@@ -91,14 +92,17 @@ impl RAM {
             self.realtime_mem[available_mem_pos].extension -= process_b_size;
 
             self.realtime_mem.insert(available_mem_pos,new_block);
+            
+            return new_block.mem_index
         }
     }
 
-    fn alloc_user_mem(&mut self, pid: i32, process_b_size: i32, available_mem_pos: usize) -> (){
+    fn alloc_user_mem(&mut self, pid: i32, process_b_size: i32, available_mem_pos: usize) -> i32{
 
         if self.user_mem[available_mem_pos].extension == process_b_size {
             self.user_mem[available_mem_pos].status = 'P';
             self.user_mem[available_mem_pos].pid = pid;
+            return self.user_mem[available_mem_pos].mem_index;
         } else {
             let new_block = RAMBlock{
                 status: 'P',
@@ -112,6 +116,8 @@ impl RAM {
             self.user_mem[available_mem_pos].extension -= process_b_size;
 
             self.user_mem.insert(available_mem_pos,new_block);
+
+            return new_block.mem_index
         }
     }
 
