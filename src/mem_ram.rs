@@ -232,4 +232,26 @@ impl RAM {
         self.user_mem.remove(first_remove_block);
         self.user_mem.remove(second_remove_block);
     }
+
+    fn preemptavel(&mut self, pid: i32, new_p_size: i32) -> bool {
+        for i in self.user_mem.len(){
+            if self.user_mem[i].pid == pid{
+                let mut antes = 0;
+                let mut depois = 0;
+                if i != 0{
+                    if self.user_mem[i-1].status == 'L'{
+                        antes = self.user_mem[i-1].extension;
+                    }
+                } else if i == self.user_mem.len()-1{
+                    if self.user_mem[i+1].status == 'L'{
+                        depois = self.user_mem[i+1].extension;
+                    }
+                }
+                return antes+depois+self.user_mem[i].exetensio > new_p_size;
+            } else {
+                continue;
+            }
+        }
+        return false
+    }
 }
